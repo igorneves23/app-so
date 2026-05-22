@@ -30,6 +30,28 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.get('/gerar-codigo', auth, async (req, res) => {
+  try {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let codigo;
+    let tentativas = 0;
+
+    do {
+      const random = Array.from({ length: 6 }, () =>
+        chars[Math.floor(Math.random() * chars.length)]
+      ).join('');
+      codigo = `EQ-${random}`;
+      const existe = await db.query('SELECT id FROM equipamentos WHERE codigo = $1', [codigo]);
+      if (existe.rows.length === 0) break;
+      tentativas++;
+    } while (tentativas < 10);
+
+    res.json({ codigo });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao gerar código' });
+  }
+});
+
 router.get('/categorias', auth, async (req, res) => {
   try {
     const result = await db.query(

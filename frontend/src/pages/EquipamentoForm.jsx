@@ -5,7 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import {
   Package, Upload, Loader2, ChevronLeft,
-  Download, QrCode, CheckCircle, Plus, Eye
+  Download, QrCode, CheckCircle, Plus, Eye, RefreshCw
 } from 'lucide-react';
 
 // ── Tela de sucesso após cadastro ──────────────────────────────────────────
@@ -98,6 +98,24 @@ export default function EquipamentoForm() {
   const [loadingData, setLoadingData] = useState(isEdit);
   const [created, setCreated] = useState(null);   // { equip, qrData }
   const [loadingQR, setLoadingQR] = useState(false);
+  const [gerandoCodigo, setGerandoCodigo] = useState(false);
+
+  // Gera código automático ao abrir formulário de novo cadastro
+  useEffect(() => {
+    if (!isEdit) gerarCodigo();
+  }, []);
+
+  async function gerarCodigo() {
+    setGerandoCodigo(true);
+    try {
+      const res = await api.get('/equipamentos/gerar-codigo');
+      setForm(f => ({ ...f, codigo: res.data.codigo }));
+    } catch {
+      // silencioso — usuário pode digitar manualmente
+    } finally {
+      setGerandoCodigo(false);
+    }
+  }
 
   useEffect(() => {
     if (isEdit) {
@@ -288,13 +306,29 @@ export default function EquipamentoForm() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Código Interno</label>
-              <input
-                className="input"
-                value={form.codigo}
-                onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-                placeholder="Ex: EQ-001"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Código Interno
+                {!isEdit && <span className="ml-1 text-xs text-blue-500 font-normal">(gerado automaticamente)</span>}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="input flex-1"
+                  value={form.codigo}
+                  onChange={(e) => setForm({ ...form, codigo: e.target.value })}
+                  placeholder="Ex: EQ-001"
+                />
+                {!isEdit && (
+                  <button
+                    type="button"
+                    onClick={gerarCodigo}
+                    disabled={gerandoCodigo}
+                    className="btn-secondary px-3 shrink-0"
+                    title="Gerar novo código"
+                  >
+                    <RefreshCw size={15} className={gerandoCodigo ? 'animate-spin' : ''} />
+                  </button>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Patrimônio</label>
