@@ -67,6 +67,42 @@ router.post('/devolver', auth, async (req, res) => {
   }
 });
 
+router.get('/pendentes', auth, async (req, res) => {
+  try {
+    let query = `
+      SELECT e.*,
+             m.data_hora AS retirado_em,
+             m.observacao AS obs_retirada,
+             u.nome AS usuario_nome,
+             u.id AS usuario_id
+      FROM equipamentos e
+      JOIN movimentacoes m ON m.id = (
+        SELECT id FROM movimentacoes
+        WHERE equipamento_id = e.id
+        ORDER BY data_hora DESC
+        LIMIT 1
+      )
+      JOIN users u ON u.id = m.usuario_id
+      WHERE e.status = 'retirado'
+        AND m.tipo = 'retirada'
+    `;
+    const params = [];
+
+    if (req.user.tipo !== 'admin') {
+      query += ` AND m.usuario_id = $1`;
+      params.push(req.user.id);
+    }
+
+    query += ` ORDER BY m.data_hora ASC`;
+
+    const result = await db.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar pendências' });
+  }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     const { limit = 50, offset = 0, usuario_id, equipamento_id, tipo } = req.query;
