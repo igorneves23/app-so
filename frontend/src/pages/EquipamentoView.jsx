@@ -7,7 +7,7 @@ import StatusBadge from '../components/StatusBadge';
 import toast from 'react-hot-toast';
 import {
   Package, MapPin, Tag, Hash, ArrowDownToLine, ArrowUpToLine,
-  Pencil, QrCode, Download, History, Loader2, ChevronLeft
+  Pencil, QrCode, Download, History, Loader2, ChevronLeft, ScanLine
 } from 'lucide-react';
 
 export default function EquipamentoView() {
@@ -195,6 +195,15 @@ export default function EquipamentoView() {
           <p className="text-sm text-amber-600 mt-1">Não é possível realizar movimentações no momento.</p>
         </div>
       )}
+
+      {/* Botão escanear próximo item */}
+      <button
+        onClick={() => navigate('/scanner')}
+        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all font-medium text-sm"
+      >
+        <ScanLine size={20} />
+        Escanear próximo item
+      </button>
 
       {/* QR Code */}
       <div className="card p-5">
