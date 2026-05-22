@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+.npm
+
+# Variáveis de ambiente (NUNCA commitar)
+.env
+backend/.env
+
+# Build do frontend
+frontend/dist/
+frontend/build/
+
+# Uploads de usuários
+backend/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Claude Code (configurações locais)
+.claude/

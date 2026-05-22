@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-senha123}
+      POSTGRES_DB: ${DB_NAME:-inventario}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-inventario}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-senha123}@postgres:5432/${DB_NAME:-inventario}
+      JWT_SECRET: ${JWT_SECRET:-mude_esta_chave_para_producao_muito_segura}
+      PORT: 3001
+      APP_URL: ${APP_URL:-http://localhost}
+      NODE_ENV: ${NODE_ENV:-production}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads_data:
