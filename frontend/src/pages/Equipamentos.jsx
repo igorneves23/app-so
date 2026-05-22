@@ -4,7 +4,7 @@ import api from '../api/axios';
 import StatusBadge from '../components/StatusBadge';
 import toast from 'react-hot-toast';
 import {
-  Plus, Search, Package, Pencil, Trash2, ChevronDown, ChevronRight, FolderOpen
+  Plus, Search, Package, Pencil, Trash2, ChevronDown, ChevronRight, FolderOpen, Eye
 } from 'lucide-react';
 
 export default function Equipamentos() {
@@ -183,6 +183,13 @@ export default function Equipamentos() {
 
                       {/* Ações */}
                       <div className="flex items-center gap-1 shrink-0">
+                        <Link
+                          to={`/equipamento/${e.id}`}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors text-xs font-medium"
+                          title="Visualizar"
+                        >
+                          <Eye size={13} /> Ver
+                        </Link>
                         <Link
                           to={`/equipamentos/${e.id}/editar`}
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-xs font-medium"
