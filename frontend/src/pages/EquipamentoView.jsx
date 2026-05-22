@@ -88,10 +88,19 @@ export default function EquipamentoView() {
 
   return (
     <div className="p-4 max-w-xl mx-auto space-y-4">
-      {/* Back */}
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-        <ChevronLeft size={16} /> Voltar
-      </button>
+      {/* Back + Escanear próximo */}
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <ChevronLeft size={16} /> Voltar
+        </button>
+        <button
+          onClick={() => navigate('/scanner')}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all font-medium text-sm"
+        >
+          <ScanLine size={18} />
+          Escanear próximo item
+        </button>
+      </div>
 
       {/* Header card */}
       <div className="card p-5">
@@ -196,14 +205,6 @@ export default function EquipamentoView() {
         </div>
       )}
 
-      {/* Botão escanear próximo item */}
-      <button
-        onClick={() => navigate('/scanner')}
-        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all font-medium text-sm"
-      >
-        <ScanLine size={20} />
-        Escanear próximo item
-      </button>
 
       {/* QR Code */}
       <div className="card p-5">
