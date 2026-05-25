@@ -54,16 +54,9 @@ export default function ChecklistPreencher() {
 
   const [submitting, setSubmitting] = useState(false);
   const [resultado, setResultado] = useState(null);
-  const [headerMinimizado, setHeaderMinimizado] = useState(false);
+  const [listaMinimizada, setListaMinimizada] = useState(false);
 
-  const listaRef = useRef(null);
-
-  function subirEMinimizar() {
-    setHeaderMinimizado(true);
-    setTimeout(() => {
-      listaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-  }
+  const topoRef = useRef(null);
 
   useEffect(() => { load(); }, [id]);
 
@@ -222,42 +215,26 @@ export default function ChecklistPreencher() {
       </button>
 
       {/* Template info */}
-      {headerMinimizado ? (
-        <div className="card px-4 py-2.5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <ClipboardCheck size={16} className="text-blue-500 shrink-0" />
-            <p className="font-semibold text-gray-800 text-sm truncate">{template?.nome}</p>
+      <div ref={topoRef} className="card p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <ClipboardCheck size={24} className="text-blue-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-gray-900 text-lg leading-tight">{template?.nome}</h1>
+            {template?.descricao && (
+              <p className="text-xs text-gray-500 mt-0.5">{template.descricao}</p>
+            )}
           </div>
           <button
-            onClick={() => setHeaderMinimizado(false)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-            title="Expandir"
+            onClick={() => setListaMinimizada((v) => !v)}
+            className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+            title={listaMinimizada ? 'Expandir lista' : 'Minimizar lista'}
           >
-            <ChevronDown size={16} />
+            {listaMinimizada ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
           </button>
         </div>
-      ) : (
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-              <ClipboardCheck size={24} className="text-blue-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="font-bold text-gray-900 text-lg leading-tight">{template?.nome}</h1>
-              {template?.descricao && (
-                <p className="text-xs text-gray-500 mt-0.5">{template.descricao}</p>
-              )}
-            </div>
-            <button
-              onClick={subirEMinimizar}
-              className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
-              title="Minimizar e ir para a lista"
-            >
-              <ChevronUp size={20} />
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Progresso */}
       <div className="card p-3">
@@ -278,7 +255,16 @@ export default function ChecklistPreencher() {
       </div>
 
       {/* Items */}
-      <div ref={listaRef} className="space-y-3">
+      {listaMinimizada && (
+        <button
+          onClick={() => setListaMinimizada(false)}
+          className="w-full card px-4 py-3 flex items-center justify-between text-sm text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        >
+          <span className="font-medium">Ver {total} itens do checklist</span>
+          <ChevronDown size={16} />
+        </button>
+      )}
+      <div className={listaMinimizada ? 'hidden' : 'space-y-3'}>
         {template?.itens?.map((item, idx) => {
           const resp = respostas[idx];
           const isNao = resp?.resposta === 'nao';
