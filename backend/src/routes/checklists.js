@@ -6,6 +6,29 @@ const router = express.Router();
 
 // ── Templates ──────────────────────────────────────────────────────────────
 
+// GET /api/checklists/status — todos os templates ativos com última verificação (todos os usuários)
+router.get('/status', auth, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        ct.id, ct.nome, ct.descricao, ct.tipo, ct.categoria, ct.equipamento_id,
+        eq.nome  AS equipamento_nome,
+        (SELECT COUNT(*) FROM checklist_itens WHERE template_id = ct.id)::int AS total_itens,
+        (SELECT v.status   FROM verificacoes v WHERE v.template_id = ct.id ORDER BY v.data_hora DESC LIMIT 1) AS ultima_status,
+        (SELECT v.data_hora FROM verificacoes v WHERE v.template_id = ct.id ORDER BY v.data_hora DESC LIMIT 1) AS ultima_data,
+        (SELECT u.nome FROM verificacoes v JOIN users u ON u.id = v.usuario_id WHERE v.template_id = ct.id ORDER BY v.data_hora DESC LIMIT 1) AS ultimo_usuario
+      FROM checklist_templates ct
+      LEFT JOIN equipamentos eq ON eq.id = ct.equipamento_id
+      WHERE ct.ativo = true
+      ORDER BY ct.nome
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar status dos checklists' });
+  }
+});
+
 // GET /api/checklists/templates
 router.get('/templates', auth, adminOnly, async (req, res) => {
   try {
