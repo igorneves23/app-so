@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -16,6 +16,7 @@ const TIPO_CONFIG = {
 
 export default function Verificacoes() {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading]     = useState(true);
 
@@ -24,9 +25,16 @@ export default function Verificacoes() {
   async function load() {
     try {
       const res = await api.get('/checklists/status');
-      setTemplates(res.data);
+      const data = res.data;
+      setTemplates(data);
+
+      // Se só existe 1 checklist, vai direto para ele
+      if (data.length === 1) {
+        navigate(`/checklist/fill/${data[0].id}`, { replace: true });
+      }
     } catch {
       toast.error('Erro ao carregar checklists');
+      setLoading(false);
     } finally {
       setLoading(false);
     }
