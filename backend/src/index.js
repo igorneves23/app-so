@@ -112,6 +112,22 @@ async function runMigrations() {
     await db.query('CREATE INDEX IF NOT EXISTS idx_verificacoes_equipamento ON verificacoes(equipamento_id)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_verificacoes_usuario ON verificacoes(usuario_id)');
     await db.query('CREATE INDEX IF NOT EXISTS idx_verificacoes_data ON verificacoes(data_hora)');
+
+    // Torna equipamento_id opcional (verificações sem equipamento específico)
+    await db.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'verificacoes'
+            AND column_name = 'equipamento_id'
+            AND is_nullable = 'NO'
+        ) THEN
+          ALTER TABLE verificacoes ALTER COLUMN equipamento_id DROP NOT NULL;
+        END IF;
+      END $$
+    `);
+
     console.log('Migrações do módulo checklist executadas');
   } catch (err) {
     console.error('Erro nas migrações:', err.message);

@@ -30,7 +30,7 @@ export default function Verificacoes() {
 
       // Se só existe 1 checklist, vai direto para ele
       if (data.length === 1) {
-        navigate(`/checklist/fill/${data[0].id}`, { replace: true });
+        navigate(`/checklist/preencher/${data[0].id}`, { replace: true });
       }
     } catch {
       toast.error('Erro ao carregar checklists');
@@ -83,7 +83,7 @@ export default function Verificacoes() {
             return (
               <Link
                 key={t.id}
-                to={`/checklist/fill/${t.id}`}
+                to={`/checklist/preencher/${t.id}`}
                 className="flex items-center gap-4 px-4 py-4 hover:bg-blue-50 active:bg-blue-100 transition-colors"
               >
                 {/* Ícone */}

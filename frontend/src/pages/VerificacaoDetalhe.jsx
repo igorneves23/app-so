@@ -121,38 +121,50 @@ export default function VerificacaoDetalhe() {
         </div>
       </div>
 
-      {/* Equipamento */}
-      <div className="card p-4">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Equipamento</h3>
-        <div className="flex items-center gap-3">
-          {verif.equipamento_foto ? (
-            <img src={verif.equipamento_foto} alt={verif.equipamento_nome} className="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0" />
-          ) : (
-            <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-              <Package size={22} className="text-gray-400" />
-            </div>
-          )}
-          <div>
-            <Link
-              to={`/equipamento/${verif.equip_id}`}
-              className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-            >
-              {verif.equipamento_nome}
-            </Link>
-            <div className="space-y-0.5 mt-1">
-              {verif.equipamento_categoria && (
-                <p className="text-xs text-gray-500 flex items-center gap-1"><Tag size={11} /> {verif.equipamento_categoria}</p>
-              )}
-              {verif.equipamento_codigo && (
-                <p className="text-xs text-gray-500 flex items-center gap-1"><Hash size={11} /> {verif.equipamento_codigo}</p>
-              )}
-              {verif.equipamento_localizacao && (
-                <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={11} /> {verif.equipamento_localizacao}</p>
-              )}
+      {/* Equipamento (só exibe se houver) */}
+      {verif.equip_id ? (
+        <div className="card p-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Equipamento</h3>
+          <div className="flex items-center gap-3">
+            {verif.equipamento_foto ? (
+              <img src={verif.equipamento_foto} alt={verif.equipamento_nome} className="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0" />
+            ) : (
+              <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                <Package size={22} className="text-gray-400" />
+              </div>
+            )}
+            <div>
+              <Link
+                to={`/equipamento/${verif.equip_id}`}
+                className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+              >
+                {verif.equipamento_nome}
+              </Link>
+              <div className="space-y-0.5 mt-1">
+                {verif.equipamento_categoria && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><Tag size={11} /> {verif.equipamento_categoria}</p>
+                )}
+                {verif.equipamento_codigo && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><Hash size={11} /> {verif.equipamento_codigo}</p>
+                )}
+                {verif.equipamento_localizacao && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={11} /> {verif.equipamento_localizacao}</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : verif.template_nome ? (
+        <div className="card p-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Checklist</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+              <ClipboardCheck size={22} className="text-blue-500" />
+            </div>
+            <p className="font-semibold text-gray-900">{verif.template_nome}</p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Meta info */}
       <div className="card p-4 space-y-2">

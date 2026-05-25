@@ -8,7 +8,6 @@ const router = express.Router();
 // POST /api/verificacoes — submeter verificação (com até 5 fotos)
 router.post('/', auth, upload.array('fotos', 5), async (req, res) => {
   const { equipamento_id, template_id, observacao_geral, respostas } = req.body;
-  if (!equipamento_id) return res.status(400).json({ error: 'equipamento_id obrigatório' });
 
   let parsedRespostas = [];
   try {
@@ -69,10 +68,12 @@ router.get('/', auth, async (req, res) => {
       SELECT v.*, u.nome AS usuario_nome,
              e.nome AS equipamento_nome, e.categoria AS equipamento_categoria,
              e.foto AS equipamento_foto,
+             ct.nome AS template_nome,
              (SELECT COUNT(*) FROM verificacao_respostas WHERE verificacao_id = v.id)::int AS total_itens
       FROM verificacoes v
       JOIN users u ON u.id = v.usuario_id
-      JOIN equipamentos e ON e.id = v.equipamento_id
+      LEFT JOIN equipamentos e ON e.id = v.equipamento_id
+      LEFT JOIN checklist_templates ct ON ct.id = v.template_id
       WHERE 1=1
     `;
     const params = [];
@@ -103,10 +104,12 @@ router.get('/:id', auth, async (req, res) => {
       `SELECT v.*, u.nome AS usuario_nome, u.email AS usuario_email,
               e.nome AS equipamento_nome, e.categoria AS equipamento_categoria,
               e.foto AS equipamento_foto, e.localizacao AS equipamento_localizacao,
-              e.codigo AS equipamento_codigo, e.id AS equip_id
+              e.codigo AS equipamento_codigo, e.id AS equip_id,
+              ct.nome AS template_nome
        FROM verificacoes v
        JOIN users u ON u.id = v.usuario_id
-       JOIN equipamentos e ON e.id = v.equipamento_id
+       LEFT JOIN equipamentos e ON e.id = v.equipamento_id
+       LEFT JOIN checklist_templates ct ON ct.id = v.template_id
        WHERE v.id = $1`,
       [req.params.id]
     );

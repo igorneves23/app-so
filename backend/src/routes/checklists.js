@@ -79,7 +79,11 @@ router.get('/template-info/:id', auth, async (req, res) => {
       );
       equipamentos = r.rows;
     }
-    res.json({ ...tmpl.rows[0], equipamentos });
+    const itens = await db.query(
+      'SELECT * FROM checklist_itens WHERE template_id = $1 ORDER BY ordem, id',
+      [req.params.id]
+    );
+    res.json({ ...tmpl.rows[0], equipamentos, itens: itens.rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao buscar template' });
