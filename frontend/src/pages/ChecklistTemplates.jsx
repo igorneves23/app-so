@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   ClipboardList, Plus, Pencil, Trash2, Globe, Tag, Package,
   ToggleLeft, ToggleRight, Loader2, Info, Eye, Link2,
-  Copy, Check, X, AlertCircle, MessageSquare,
+  Copy, Check, X, AlertCircle, RotateCcw, CheckSquare, Square,
 } from 'lucide-react';
 
 const TIPO_CONFIG = {
@@ -28,11 +28,37 @@ function Modal({ onClose, children }) {
 
 // ── Modal de Preview ────────────────────────────────────────────────────────
 function PreviewModal({ template, onClose }) {
+  const [checked, setChecked] = useState([]);
+
+  useEffect(() => {
+    if (template?.itens) {
+      setChecked(new Array(template.itens.length).fill(false));
+    }
+  }, [template]);
+
   if (!template) return null;
+
   const cfg = TIPO_CONFIG[template.tipo] || TIPO_CONFIG.global;
   const TipoIcon = cfg.icon;
+  const total = template.itens?.length || 0;
+  const checkedCount = checked.filter(Boolean).length;
+  const allDone = total > 0 && checkedCount === total;
+
+  function toggle(idx) {
+    setChecked((prev) => prev.map((v, i) => (i === idx ? !v : v)));
+  }
+
+  function resetAll() {
+    setChecked(new Array(total).fill(false));
+  }
+
+  function checkAll() {
+    setChecked(new Array(total).fill(true));
+  }
+
   return (
     <Modal onClose={onClose}>
+      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
         <div>
           <h2 className="font-bold text-gray-900">{template.nome}</h2>
@@ -52,31 +78,99 @@ function PreviewModal({ template, onClose }) {
         </p>
       )}
 
-      <div className="overflow-y-auto flex-1 px-5 py-3 space-y-2">
-        {template.itens?.length === 0 && (
-          <p className="text-center text-gray-400 py-8">Nenhum item cadastrado</p>
-        )}
-        {template.itens?.map((item, idx) => (
-          <div key={item.id} className="flex gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <span className="w-6 h-6 bg-blue-100 text-blue-700 text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
-              {idx + 1}
+      {/* Barra de progresso */}
+      {total > 0 && (
+        <div className="px-5 py-3 border-b border-gray-100 shrink-0">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className={`font-semibold ${allDone ? 'text-green-600' : 'text-gray-600'}`}>
+              {allDone ? '✓ Tudo verificado!' : `${checkedCount} de ${total} verificados`}
             </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800">{item.pergunta}</p>
-              {item.descricao && <p className="text-xs text-gray-500 mt-0.5">{item.descricao}</p>}
-              {item.obs_obrigatoria_em_nao && (
-                <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                  <AlertCircle size={9} /> Obs. obrigatória em "Não"
-                </span>
-              )}
+            <div className="flex gap-2">
+              <button
+                onClick={checkAll}
+                className="text-xs text-blue-600 hover:underline font-medium"
+              >
+                Marcar todos
+              </button>
+              <span className="text-gray-300">·</span>
+              <button
+                onClick={resetAll}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5"
+              >
+                <RotateCcw size={11} /> Limpar
+              </button>
             </div>
           </div>
-        ))}
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${allDone ? 'bg-green-500' : 'bg-blue-500'}`}
+              style={{ width: `${total > 0 ? Math.round((checkedCount / total) * 100) : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Lista de itens com checkbox */}
+      <div className="overflow-y-auto flex-1 px-5 py-3 space-y-2">
+        {total === 0 && (
+          <p className="text-center text-gray-400 py-8">Nenhum item cadastrado</p>
+        )}
+        {template.itens?.map((item, idx) => {
+          const isChecked = checked[idx] || false;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => toggle(idx)}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all active:scale-[0.98] ${
+                isChecked
+                  ? 'bg-green-50 border-green-200 shadow-sm'
+                  : 'bg-gray-50 border-gray-100 hover:border-gray-200 hover:bg-gray-100'
+              }`}
+            >
+              {/* Checkbox */}
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                isChecked ? 'bg-green-500' : 'bg-white border-2 border-gray-300'
+              }`}>
+                {isChecked && <Check size={13} className="text-white" strokeWidth={3} />}
+              </div>
+
+              {/* Número */}
+              <span className={`w-6 h-6 text-xs font-bold rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                isChecked ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+              }`}>
+                {idx + 1}
+              </span>
+
+              {/* Texto */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium transition-colors ${
+                  isChecked ? 'line-through text-gray-400' : 'text-gray-800'
+                }`}>
+                  {item.pergunta}
+                </p>
+                {item.descricao && !isChecked && (
+                  <p className="text-xs text-gray-500 mt-0.5">{item.descricao}</p>
+                )}
+                {item.obs_obrigatoria_em_nao && !isChecked && (
+                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                    <AlertCircle size={9} /> Obs. obrigatória em "Não"
+                  </span>
+                )}
+              </div>
+
+              {/* Check visual */}
+              {isChecked && (
+                <span className="text-xs font-semibold text-green-600 shrink-0">✓ OK</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="px-5 py-4 border-t border-gray-100 shrink-0">
         <p className="text-xs text-gray-400 text-center mb-3">
-          {template.itens?.length || 0} itens · Visualização somente leitura
+          {checkedCount}/{total} itens marcados
         </p>
         <button onClick={onClose} className="btn-secondary w-full justify-center">Fechar</button>
       </div>
