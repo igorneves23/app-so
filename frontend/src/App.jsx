@@ -16,6 +16,7 @@ import ChecklistTemplates from './pages/ChecklistTemplates';
 import ChecklistTemplateForm from './pages/ChecklistTemplateForm';
 import Verificacoes from './pages/Verificacoes';
 import VerificacaoDetalhe from './pages/VerificacaoDetalhe';
+import ChecklistFill from './pages/ChecklistFill';
 
 function AppLayout({ children, adminOnly = false }) {
   return (
@@ -47,6 +48,9 @@ export default function App() {
       <Route path="/checklist/templates" element={<AppLayout adminOnly><ChecklistTemplates /></AppLayout>} />
       <Route path="/checklist/templates/novo" element={<AppLayout adminOnly><ChecklistTemplateForm /></AppLayout>} />
       <Route path="/checklist/templates/:id/editar" element={<AppLayout adminOnly><ChecklistTemplateForm /></AppLayout>} />
+
+      {/* Link de preenchimento direto (todos os usuários logados) */}
+      <Route path="/checklist/fill/:id" element={<AppLayout><ChecklistFill /></AppLayout>} />
 
       {/* Outros */}
       <Route path="/usuarios" element={<AppLayout adminOnly><Usuarios /></AppLayout>} />

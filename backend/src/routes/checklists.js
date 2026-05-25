@@ -26,6 +26,43 @@ router.get('/templates', auth, adminOnly, async (req, res) => {
   }
 });
 
+// GET /api/checklists/template-info/:id — info pública do template + equipamentos aplicáveis (não admin)
+router.get('/template-info/:id', auth, async (req, res) => {
+  try {
+    const tmpl = await db.query(
+      `SELECT id, nome, descricao, tipo, categoria, equipamento_id
+       FROM checklist_templates WHERE id = $1 AND ativo = true`,
+      [req.params.id]
+    );
+    if (tmpl.rows.length === 0) return res.status(404).json({ error: 'Template não encontrado ou inativo' });
+    const { tipo, categoria, equipamento_id: eqId } = tmpl.rows[0];
+
+    let equipamentos = [];
+    if (tipo === 'equipamento' && eqId) {
+      const r = await db.query(
+        'SELECT id, nome, categoria, foto, status, localizacao, codigo FROM equipamentos WHERE id = $1',
+        [eqId]
+      );
+      equipamentos = r.rows;
+    } else if (tipo === 'categoria' && categoria) {
+      const r = await db.query(
+        'SELECT id, nome, categoria, foto, status, localizacao, codigo FROM equipamentos WHERE categoria = $1 ORDER BY nome',
+        [categoria]
+      );
+      equipamentos = r.rows;
+    } else {
+      const r = await db.query(
+        'SELECT id, nome, categoria, foto, status, localizacao, codigo FROM equipamentos ORDER BY nome'
+      );
+      equipamentos = r.rows;
+    }
+    res.json({ ...tmpl.rows[0], equipamentos });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar template' });
+  }
+});
+
 // GET /api/checklists/para/:equipamento_id — template aplicável (prioridade: equipamento > categoria > global)
 router.get('/para/:equipamento_id', auth, async (req, res) => {
   try {

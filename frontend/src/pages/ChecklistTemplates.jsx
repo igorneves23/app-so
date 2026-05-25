@@ -1,24 +1,169 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   ClipboardList, Plus, Pencil, Trash2, Globe, Tag, Package,
-  ToggleLeft, ToggleRight, Loader2, Info,
+  ToggleLeft, ToggleRight, Loader2, Info, Eye, Link2,
+  Copy, Check, X, AlertCircle, MessageSquare,
 } from 'lucide-react';
 
 const TIPO_CONFIG = {
-  global:      { label: 'Global',      color: 'bg-blue-100 text-blue-700',   icon: Globe  },
-  categoria:   { label: 'Por Categoria', color: 'bg-purple-100 text-purple-700', icon: Tag    },
-  equipamento: { label: 'Por Equipamento', color: 'bg-green-100 text-green-700', icon: Package },
+  global:      { label: 'Global',          color: 'bg-blue-100 text-blue-700',     icon: Globe   },
+  categoria:   { label: 'Por Categoria',   color: 'bg-purple-100 text-purple-700', icon: Tag     },
+  equipamento: { label: 'Por Equipamento', color: 'bg-green-100 text-green-700',   icon: Package },
 };
 
+// ── Modal base ──────────────────────────────────────────────────────────────
+function Modal({ onClose, children }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Modal de Preview ────────────────────────────────────────────────────────
+function PreviewModal({ template, onClose }) {
+  if (!template) return null;
+  const cfg = TIPO_CONFIG[template.tipo] || TIPO_CONFIG.global;
+  const TipoIcon = cfg.icon;
+  return (
+    <Modal onClose={onClose}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+        <div>
+          <h2 className="font-bold text-gray-900">{template.nome}</h2>
+          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full mt-1 ${cfg.color}`}>
+            <TipoIcon size={11} /> {cfg.label}
+            {template.tipo === 'categoria' && template.categoria && `: ${template.categoria}`}
+          </span>
+        </div>
+        <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100">
+          <X size={18} />
+        </button>
+      </div>
+
+      {template.descricao && (
+        <p className="px-5 py-3 text-sm text-gray-600 border-b border-gray-100 shrink-0 bg-gray-50">
+          {template.descricao}
+        </p>
+      )}
+
+      <div className="overflow-y-auto flex-1 px-5 py-3 space-y-2">
+        {template.itens?.length === 0 && (
+          <p className="text-center text-gray-400 py-8">Nenhum item cadastrado</p>
+        )}
+        {template.itens?.map((item, idx) => (
+          <div key={item.id} className="flex gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <span className="w-6 h-6 bg-blue-100 text-blue-700 text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              {idx + 1}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800">{item.pergunta}</p>
+              {item.descricao && <p className="text-xs text-gray-500 mt-0.5">{item.descricao}</p>}
+              {item.obs_obrigatoria_em_nao && (
+                <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                  <AlertCircle size={9} /> Obs. obrigatória em "Não"
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+        <p className="text-xs text-gray-400 text-center mb-3">
+          {template.itens?.length || 0} itens · Visualização somente leitura
+        </p>
+        <button onClick={onClose} className="btn-secondary w-full justify-center">Fechar</button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal de Link ────────────────────────────────────────────────────────────
+function LinkModal({ template, onClose }) {
+  const [copied, setCopied] = useState(false);
+  if (!template) return null;
+  const url = `${window.location.origin}/checklist/fill/${template.id}`;
+
+  function copyLink() {
+    navigator.clipboard.writeText(url)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
+      .catch(() => toast.error('Não foi possível copiar'));
+  }
+
+  return (
+    <Modal onClose={onClose}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+        <h2 className="font-bold text-gray-900">Link de Preenchimento</h2>
+        <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100">
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="px-5 py-5 space-y-5 overflow-y-auto">
+        {/* QR do link */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="p-3 bg-white border-2 border-gray-200 rounded-2xl shadow-sm">
+            <QRCodeSVG value={url} size={180} level="H" />
+          </div>
+          <p className="text-xs text-gray-400 text-center">
+            Escaneie para abrir o formulário diretamente
+          </p>
+        </div>
+
+        {/* URL */}
+        <div>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">URL do formulário</label>
+          <div className="flex gap-2">
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-600 break-all select-all font-mono">
+              {url}
+            </div>
+            <button
+              onClick={copyLink}
+              className={`shrink-0 px-3 py-2.5 rounded-xl border-2 font-semibold text-sm transition-all ${
+                copied
+                  ? 'bg-green-50 border-green-400 text-green-600'
+                  : 'border-blue-300 text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex gap-2">
+          <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-700">
+            O voluntário precisa estar logado no sistema para acessar o link.
+            Ao abrir, poderá selecionar o equipamento e preencher o checklist.
+          </p>
+        </div>
+      </div>
+
+      <div className="px-5 py-4 border-t border-gray-100 shrink-0">
+        <button onClick={copyLink} className="btn-primary w-full justify-center">
+          {copied ? <><Check size={16} /> Link copiado!</> : <><Link2 size={16} /> Copiar link</>}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Página principal ─────────────────────────────────────────────────────────
 export default function ChecklistTemplates() {
-  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
   const [toggling, setToggling] = useState(null);
+
+  const [preview, setPreview] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(null);
+  const [linkModal, setLinkModal] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -31,6 +176,18 @@ export default function ChecklistTemplates() {
       toast.error('Erro ao carregar templates');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function openPreview(t) {
+    setLoadingPreview(t.id);
+    try {
+      const res = await api.get(`/checklists/templates/${t.id}`);
+      setPreview(res.data);
+    } catch {
+      toast.error('Erro ao carregar preview');
+    } finally {
+      setLoadingPreview(null);
     }
   }
 
@@ -72,7 +229,7 @@ export default function ChecklistTemplates() {
         </Link>
       </div>
 
-      {/* Info card */}
+      {/* Info */}
       <div className="card p-3 bg-blue-50 border-blue-100 flex gap-3">
         <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
         <div className="text-xs text-blue-700 space-y-0.5">
@@ -90,7 +247,6 @@ export default function ChecklistTemplates() {
         <div className="card p-10 text-center space-y-3">
           <ClipboardList size={48} className="mx-auto text-gray-300" />
           <p className="text-gray-500 font-medium">Nenhum checklist cadastrado</p>
-          <p className="text-xs text-gray-400">Crie um template para começar a verificar equipamentos</p>
           <Link to="/checklist/templates/novo" className="btn-primary mt-3 inline-flex text-sm">
             <Plus size={16} /> Criar primeiro checklist
           </Link>
@@ -124,7 +280,6 @@ export default function ChecklistTemplates() {
                         )}
                       </button>
                     </div>
-
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${cfg.color}`}>
                         <TipoIcon size={11} />
@@ -137,23 +292,46 @@ export default function ChecklistTemplates() {
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Inativo</span>
                       )}
                     </div>
-
                     {t.descricao && (
-                      <p className="text-xs text-gray-500 mt-1.5 line-clamp-2">{t.descricao}</p>
+                      <p className="text-xs text-gray-500 mt-1.5 line-clamp-1">{t.descricao}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-3 ml-13">
+                {/* Ações */}
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  {/* Visualizar */}
+                  <button
+                    onClick={() => openPreview(t)}
+                    disabled={loadingPreview === t.id}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-xs font-medium transition-colors"
+                  >
+                    {loadingPreview === t.id
+                      ? <Loader2 size={13} className="animate-spin" />
+                      : <Eye size={13} />}
+                    Visualizar
+                  </button>
+
+                  {/* Link */}
+                  <button
+                    onClick={() => setLinkModal(t)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 text-xs font-medium transition-colors"
+                  >
+                    <Link2 size={13} /> Link
+                  </button>
+
+                  {/* Editar */}
                   <Link
                     to={`/checklist/templates/${t.id}/editar`}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium transition-colors"
                   >
                     <Pencil size={13} /> Editar
                   </Link>
+
+                  {/* Excluir */}
                   <button
                     onClick={() => setDeleteId(t.id)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 text-xs font-medium transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 text-xs font-medium transition-colors ml-auto"
                   >
                     <Trash2 size={13} /> Excluir
                   </button>
@@ -179,6 +357,12 @@ export default function ChecklistTemplates() {
           </div>
         </div>
       )}
+
+      {/* Modal de Preview */}
+      {preview && <PreviewModal template={preview} onClose={() => setPreview(null)} />}
+
+      {/* Modal de Link */}
+      {linkModal && <LinkModal template={linkModal} onClose={() => setLinkModal(null)} />}
     </div>
   );
 }
