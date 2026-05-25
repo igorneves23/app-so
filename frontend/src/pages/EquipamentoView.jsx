@@ -7,7 +7,8 @@ import StatusBadge from '../components/StatusBadge';
 import toast from 'react-hot-toast';
 import {
   Package, MapPin, Tag, Hash, ArrowDownToLine, ArrowUpToLine,
-  Pencil, QrCode, Download, History, Loader2, ChevronLeft, ScanLine
+  Pencil, QrCode, Download, History, Loader2, ChevronLeft, ScanLine,
+  ClipboardCheck,
 } from 'lucide-react';
 
 export default function EquipamentoView() {
@@ -161,6 +162,22 @@ export default function EquipamentoView() {
           </p>
         </div>
       )}
+
+      {/* Verificar Equipamento */}
+      <div className="card p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-800">Checklist Operacional</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Verifique o funcionamento do equipamento</p>
+          </div>
+          <Link
+            to={`/equipamento/${id}/verificar`}
+            className="btn-primary text-sm py-2 px-4"
+          >
+            <ClipboardCheck size={15} /> Verificar
+          </Link>
+        </div>
+      </div>
 
       {/* Action area */}
       {equip.status !== 'manutencao' && (

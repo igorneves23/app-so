@@ -9,21 +9,24 @@ import {
   BarChart3,
   LogOut,
   ChevronRight,
+  ClipboardCheck,
 } from 'lucide-react';
 
 const navUser = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Início' },
-  { to: '/scanner', icon: QrCode, label: 'Escanear' },
-  { to: '/historico', icon: History, label: 'Histórico' },
+  { to: '/dashboard',    icon: LayoutDashboard, label: 'Início'       },
+  { to: '/scanner',      icon: QrCode,          label: 'Escanear'     },
+  { to: '/verificacoes', icon: ClipboardCheck,  label: 'Verificações' },
+  { to: '/historico',    icon: History,         label: 'Histórico'    },
 ];
 
 const navAdmin = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Início' },
-  { to: '/scanner', icon: QrCode, label: 'Escanear' },
-  { to: '/equipamentos', icon: Package, label: 'Equipamentos' },
-  { to: '/usuarios', icon: Users, label: 'Usuários' },
-  { to: '/historico', icon: History, label: 'Histórico' },
-  { to: '/relatorios', icon: BarChart3, label: 'Relatórios' },
+  { to: '/dashboard',    icon: LayoutDashboard, label: 'Início'       },
+  { to: '/scanner',      icon: QrCode,          label: 'Escanear'     },
+  { to: '/verificacoes', icon: ClipboardCheck,  label: 'Verificações' },
+  { to: '/equipamentos', icon: Package,         label: 'Equipamentos' },
+  { to: '/usuarios',     icon: Users,           label: 'Usuários'     },
+  { to: '/historico',    icon: History,         label: 'Histórico'    },
+  { to: '/relatorios',   icon: BarChart3,       label: 'Relatórios'   },
 ];
 
 export default function Layout({ children }) {
@@ -35,6 +38,15 @@ export default function Layout({ children }) {
   function handleLogout() {
     logout();
     navigate('/login');
+  }
+
+  function isActive(to) {
+    if (to === '/dashboard') return location.pathname === to;
+    // checklist pages under /verificacoes
+    if (to === '/verificacoes') {
+      return location.pathname.startsWith('/verificacoes') || location.pathname.startsWith('/checklist');
+    }
+    return location.pathname.startsWith(to);
   }
 
   return (
@@ -57,7 +69,7 @@ export default function Layout({ children }) {
         {/* Sidebar desktop */}
         <aside className="hidden md:flex flex-col w-56 bg-white border-r border-gray-200 py-4 gap-1 shrink-0">
           {nav.map(({ to, icon: Icon, label }) => {
-            const active = location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to));
+            const active = isActive(to);
             return (
               <Link
                 key={to}
@@ -85,7 +97,7 @@ export default function Layout({ children }) {
       {/* Bottom nav mobile */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-30 shadow-lg">
         {nav.slice(0, 5).map(({ to, icon: Icon, label }) => {
-          const active = location.pathname === to || (to !== '/dashboard' && location.pathname.startsWith(to));
+          const active = isActive(to);
           return (
             <Link
               key={to}
