@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   Loader2, ClipboardCheck, Camera, X,
   CheckCircle, AlertTriangle, XCircle, Check, Minus,
-  MessageSquare, ChevronLeft, AlertCircle,
+  MessageSquare, ChevronLeft, AlertCircle, ChevronUp, ChevronDown,
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -54,6 +54,16 @@ export default function ChecklistPreencher() {
 
   const [submitting, setSubmitting] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [headerMinimizado, setHeaderMinimizado] = useState(false);
+
+  const listaRef = useRef(null);
+
+  function subirEMinimizar() {
+    setHeaderMinimizado(true);
+    setTimeout(() => {
+      listaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
 
   useEffect(() => { load(); }, [id]);
 
@@ -212,19 +222,42 @@ export default function ChecklistPreencher() {
       </button>
 
       {/* Template info */}
-      <div className="card p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-            <ClipboardCheck size={24} className="text-blue-500" />
+      {headerMinimizado ? (
+        <div className="card px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <ClipboardCheck size={16} className="text-blue-500 shrink-0" />
+            <p className="font-semibold text-gray-800 text-sm truncate">{template?.nome}</p>
           </div>
-          <div>
-            <h1 className="font-bold text-gray-900 text-lg leading-tight">{template?.nome}</h1>
-            {template?.descricao && (
-              <p className="text-xs text-gray-500 mt-0.5">{template.descricao}</p>
-            )}
+          <button
+            onClick={() => setHeaderMinimizado(false)}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+            title="Expandir"
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+      ) : (
+        <div className="card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+              <ClipboardCheck size={24} className="text-blue-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-bold text-gray-900 text-lg leading-tight">{template?.nome}</h1>
+              {template?.descricao && (
+                <p className="text-xs text-gray-500 mt-0.5">{template.descricao}</p>
+              )}
+            </div>
+            <button
+              onClick={subirEMinimizar}
+              className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+              title="Minimizar e ir para a lista"
+            >
+              <ChevronUp size={20} />
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Progresso */}
       <div className="card p-3">
@@ -245,7 +278,7 @@ export default function ChecklistPreencher() {
       </div>
 
       {/* Items */}
-      <div className="space-y-3">
+      <div ref={listaRef} className="space-y-3">
         {template?.itens?.map((item, idx) => {
           const resp = respostas[idx];
           const isNao = resp?.resposta === 'nao';
